@@ -102,12 +102,54 @@ window.onload = () => {
             let arrow = input.getElementsByClassName('select-arrow')[0]
 
             if ( options.style.display == '' || options.style.display == 'none') {
+                
+
                 options.style.display = 'block'
                 arrow.classList.add('arrow-up')
 
             } else {
                 options.style.display = 'none'
                 arrow.classList.remove('arrow-up')
+
+                if (options.parentElement.id == 'Month' || options.parentElement.id == 'Year') {
+                    let y = document.getElementById('Year').getElementsByClassName('select-text')[0].innerText
+                    let s = document.getElementById('Month').getElementsByClassName('select-text')[0].innerText
+                    let d = document.getElementById('Date').getElementsByClassName('select-text')[0].innerText
+                    console.log(s)
+                    if ( s == 'February') {
+                        document.getElementById('Date').getElementsByClassName('option')[28].style.display = 'none'
+                        document.getElementById('Date').getElementsByClassName('option')[29].style.display = 'none'
+                        document.getElementById('Date').getElementsByClassName('option')[30].style.display = 'none'
+                        console.log(d)
+
+                        let gregorianYear = parseInt(y.replace(',', '')) - 10000
+                        if ( ((gregorianYear % 4 == 0) && (gregorianYear % 100 != 0)) || (gregorianYear % 400 == 0) ) {
+                            console.log('윤년임')
+                            document.getElementById('Date').getElementsByClassName('option')[28].style.display = ''
+                        } else {
+                            console.log('윤년아님')
+                            console.log(document.getElementById('Date').getElementsByClassName('option')[28].style.display)
+                            document.getElementById('Date').getElementsByClassName('option')[28].style.display = 'none'
+
+                            if ( d == '29' || d == '30' || d == '31') {
+                                document.getElementById('Date').getElementsByClassName('select-text')[0].innerText = '28'
+                            }
+                        }
+                        
+                    } else if ( s == 'April' || s == 'June' || s == 'September' || s == 'November') {
+                        document.getElementById('Date').getElementsByClassName('option')[28].style.display = ''
+                        document.getElementById('Date').getElementsByClassName('option')[29].style.display = ''
+                        document.getElementById('Date').getElementsByClassName('option')[30].style.display = 'none'
+                        console.log(d)
+                        if ( d == '31') {
+                            document.getElementById('Date').getElementsByClassName('select-text')[0].innerText = '30'
+                        }
+                    } else if ( s == 'January' || s == 'March' || s == 'May' || s == 'July' || s == 'August' || s == 'October' || s == 'December') {
+                        document.getElementById('Date').getElementsByClassName('option')[28].style.display = ''
+                        document.getElementById('Date').getElementsByClassName('option')[29].style.display = ''
+                        document.getElementById('Date').getElementsByClassName('option')[30].style.display = ''
+                    }
+                }
 
                 target.style.zIndex = ''
                 Array.from(document.getElementsByClassName('bg')).forEach(e => {e.remove()})
@@ -119,14 +161,26 @@ window.onload = () => {
 
     Circular()
 
+    window.addEventListener('resize', function () {
+        Array.from(document.getElementsByClassName('tag')).forEach(e => {
+            e.remove()})
+        Array.from(document.getElementsByClassName('line')).forEach(e => {
+            e.remove()})
+            Array.from(document.getElementsByClassName('circle-sector')).forEach(e => {
+                e.remove()})
+
+        console.log('Resize Event : ReRendering <Circular>')
+        Circular()
+    })
+
     function Circular () {
         let circle = document.getElementById('circle')
         
-        console.log(circle)
+        // console.log(circle)
 
         let data = circle.getBoundingClientRect()
 
-        console.log(data)
+        // console.log(data)
 
         
 
@@ -159,7 +213,7 @@ window.onload = () => {
         let today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`
 
         let endOfToday = new Date(`${today} 23:59:59`)
-        console.log(endOfToday)
+        // console.log(endOfToday)
 
         function sec2time(timeInSeconds) {
             var pad = function(num, size) { return ('000' + num).slice(size * -1); },
@@ -172,25 +226,38 @@ window.onload = () => {
             return pad(hours, 2) + ':' + pad(minutes, 2) + ':' + pad(seconds, 2) + ',' + pad(milliseconds, 3);
         }
 
-        a.forEach(item => {
-            console.log(item[0])
-            // console.log(item[0][0:1])
-            // console.timeLog)
-            // console.log(item[0].slice(2, 4))
+        for ( let i = 0; i < a.length; i++ ) {
+            let item = a[i]
 
             let date1 = new Date(`${today} ${item[0].slice(0, 2)}:${item[0].slice(2, 4)}`)
             
             let date2 = new Date(1970, 0, 1)
             date2.setSeconds(endOfToday - date1)
 
-            let sec = endOfToday - date1
-
-            console.log(date1 - new Date(`${today} 00:00:00`))
             let degress = Math.round((date1 - new Date(`${today} 00:00:00`)) / 86399000 * 360) - 90
-            console.log(degress)
-
             let line = drawline(data, degress)
             circle.appendChild(line)
+
+            let first
+            let second
+
+            if ( a[i+1] != undefined ) {
+                first = a[i]
+                second = a[i+1]
+            } else { 
+                first = a[i]
+                second = a[0]
+            }
+
+            
+
+            let date12 = new Date(`${today} ${first[0].slice(0, 2)}:${first[0].slice(2, 4)}`)
+            let date22 = new Date(`${today} ${second[0].slice(0, 2)}:${second[0].slice(2, 4)}`)
+            let degress2 = Math.round((date12 - date22) / 86399000 * 360) - 90
+
+            let cs = drawCircleSector(data, degress2, degress + 180)
+            circle.appendChild(cs)
+             
 
             let linedata = line.getBoundingClientRect()
 
@@ -198,32 +265,59 @@ window.onload = () => {
 
             let tag = document.createElement('div')
             tag.style.position = 'absolute'
-            tag.style.left = linedata.left + ( linedata.width / 2 ) + 'px'
-            tag.style.top = linedata.top + ( linedata.height / 2 ) + 'px'
+            tag.classList.add('tag')
+
+            tag.style.left = linedata.left + linedata.width / 2 - data.left + 'px'
+            tag.style.top = linedata.y + linedata.height / 2 - data.top + 'px'
+
             tag.innerHTML = item[0]
 
             circle.appendChild(tag)
+        }
 
-            console.log(date2)
-        })
 
     }
 
-
-
     function drawline (data, degress) {
         let line = document.createElement('div')
+        line.classList.add('line')
         line.style.position = 'absolute'
         line.style.transformOrigin = '0% 0%'
-        line.style.left = data.left + ( data.width / 2 ) + 'px'
-        line.style.top = data.top + ( data.height / 2 ) + 'px'
+
+        line.style.left = data.width / 2 + 'px'
+        line.style.top = data.height / 2 + 'px'
+
         line.style.width = ( data.width / 2 ) + 'px'
         line.style.height = '1px'
+
         line.style.background = 'black'
+
+
 
         line.style.transform = 'rotate(' + degress + 'deg)'
 
         return line
+    }
+
+    function drawCircleSector (data, innerdeg, degress) {
+        let cs = document.createElement('div')
+        cs.classList.add('circle-sector')
+        cs.style.position = 'absolute'
+        cs.style.transformOrigin = '100% 100%'
+
+
+        
+
+        cs.style.left = -(data.width / 2) + 'px'
+        cs.style.top = -(data.height / 2) + 'px'
+        cs.style.width = data.width + 'px'
+        cs.style.height = data.height + 'px'
+        // cs.style.borderRadius = '50%'
+        cs.style.transform = 'rotate(' + degress + 'deg) skew(' + innerdeg + 'deg)'
+
+        cs.style.background = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+        return cs
     }
 }
 

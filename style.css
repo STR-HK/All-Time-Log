@@ -193,6 +193,8 @@ html, body {
     justify-content: center;
     align-items: center;
 
+    
+
 }
 
 .circle {
@@ -203,6 +205,9 @@ html, body {
     border-radius: 100%;
 
     width: 80%;
+
+    position: relative;
+    overflow: hidden;
 }
 
 
