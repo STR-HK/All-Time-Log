@@ -126,6 +126,10 @@ window.onload = () => {
                         if ( ((gregorianYear % 4 == 0) && (gregorianYear % 100 != 0)) || (gregorianYear % 400 == 0) ) {
                             console.log('윤년임')
                             document.getElementById('Date').getElementsByClassName('option')[28].style.display = ''
+
+                            if ( d == '30' || d == '31') {
+                                document.getElementById('Date').getElementsByClassName('select-text')[0].innerText = '29'
+                            }
                         } else {
                             console.log('윤년아님')
                             console.log(document.getElementById('Date').getElementsByClassName('option')[28].style.display)
